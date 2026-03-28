@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Aventura de Números!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: #FFDEE9;
+            background-image: linear-gradient(0deg, #FFDEE9 0%, #B5FFFC 100%);
+            min-height: 100vh;
+        }
+        .block-unit {
+            width: 25px; height: 25px;
+            background: #4ADE80; border: 3px solid #166534;
+            border-radius: 6px; box-shadow: 2px 2px 0px #166534;
+        }
+        .block-ten {
+            width: 15px; height: 40px;
+            background: #FACC15; border: 3px solid #854D0E;
+            border-radius: 4px; box-shadow: 2px 2px 0px #854D0E;
+        }
+        .block-hundred {
+            width: 40px; height: 40px;
+            background: #F87171; border: 3px solid #991B1B;
+            border-radius: 8px; box-shadow: 3px 3px 0px #991B1B;
+        }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
+            -webkit-appearance: none; margin: 0;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+
+    <div class="bg-white rounded-[30px] shadow-[0_10px_0_0_#6366f1] p-8 max-w-2xl w-full border-4 border-indigo-500">
+        <h1 class="text-4xl font-bold text-indigo-600 mb-2 text-center">✨ ¡Misión Suma! ✨</h1>
+        <p class="text-gray-500 mb-6 text-center font-bold">¿Qué número falta para completar la suma?</p>
+
+        <div class="mb-8 flex justify-center items-center gap-3">
+            <span class="text-lg font-bold text-orange-500">Nivel:</span>
+            <select id="difficulty-selector" class="bg-orange-100 border-2 border-orange-400 text-orange-700 py-2 px-4 rounded-full font-bold outline-none cursor-pointer">
+                <option value="basic">⭐ Unidades</option>
+                <option value="intermediate">⭐⭐ Decenas</option>
+                <option value="advanced">⭐⭐⭐ Cientos</option>
+            </select>
+        </div>
+
+        <div class="bg-sky-50 rounded-3xl p-6 border-2 border-sky-200 mb-6">
+            <div id="problem-display" class="text-6xl font-black text-gray-700 flex flex-wrap justify-center items-center gap-4 mb-10">
+                <span id="num1" class="text-purple-600"></span>
+                <span class="text-pink-500">+</span>
+                <input type="number" id="answer-input" placeholder="?" class="w-32 text-center bg-white border-b-8 border-pink-400 rounded-2xl text-pink-600 outline-none focus:border-indigo-500 transition-all placeholder-gray-200" />
+                <span class="text-pink-500">=</span>
+                <span id="sum" class="text-indigo-600"></span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 items-center text-center">
+                <div id="visualizer-num1" class="flex flex-wrap justify-center gap-1 min-h-[60px]"></div>
+                <div class="text-4xl font-bold text-gray-300">?</div>
+                <div id="visualizer-sum" class="flex flex-wrap justify-center gap-1 min-h-[60px]"></div>
+            </div>
+        </div>
+
+        <div id="feedback" class="text-2xl font-bold text-center h-10 mb-4 transition-all"></div>
+
+        <button id="check-button" class="w-full bg-green-400 hover:bg-green-500 text-white text-2xl py-4 rounded-2xl shadow-[0_6px_0_0_#166534] active:shadow-none active:translate-y-1 transition-all font-black uppercase tracking-widest">
+            ¡Revisar!
+        </button>
+
+        <button id="new-problem-button" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white text-2xl py-4 rounded-2xl shadow-[0_6px_0_0_#3730a3] active:shadow-none active:translate-y-1 transition-all font-black uppercase tracking-widest hidden">
+            ¡Siguiente Reto! 🚀
+        </button>
+    </div>
+
+    <script>
+        const num1El = document.getElementById('num1');
+        const sumEl = document.getElementById('sum');
+        const answerInput = document.getElementById('answer-input');
+        const checkButton = document.getElementById('check-button');
+        const newProblemButton = document.getElementById('new-problem-button');
+        const feedbackEl = document.getElementById('feedback');
+        const difficultySelector = document.getElementById('difficulty-selector');
+        const visualizerNum1 = document.getElementById('visualizer-num1');
+        const visualizerSum = document.getElementById('visualizer-sum');
+
+        let num1, num2, sum;
+
+        function generatePlaceValueVisuals(container, number) {
+            container.innerHTML = '';
+            let hundreds = Math.floor(number / 100);
+            let tens = Math.floor((number % 100) / 10);
+            let units = number % 10;
+
+            for (let i = 0; i < hundreds; i++) container.innerHTML += '<div class="block-hundred"></div>';
+            for (let i = 0; i < tens; i++) container.innerHTML += '<div class="block-ten"></div>';
+            for (let i = 0; i < units; i++) container.innerHTML += '<div class="block-unit"></div>';
+        }
+
+        function generateProblem() {
+            const diff = difficultySelector.value;
+            const ranges = { basic: [1, 9], intermediate: [10, 50], advanced: [50, 200] };
+            const [min, max] = ranges[diff];
+
+            num1 = Math.floor(Math.random() * (max - min)) + min;
+            num2 = Math.floor(Math.random() * (max - min)) + min;
+            sum = num1 + num2;
+
+            num1El.textContent = num1;
+            sumEl.textContent = sum;
+            answerInput.value = '';
+            answerInput.disabled = false;
+            feedbackEl.textContent = '';
+            checkButton.classList.remove('hidden');
+            newProblemButton.classList.add('hidden');
+            
+            generatePlaceValueVisuals(visualizerNum1, num1);
+            generatePlaceValueVisuals(visualizerSum, sum);
+        }
+
+        checkButton.addEventListener('click', () => {
+            const userAns = parseInt(answerInput.value);
+            if (userAns === num2) {
+                feedbackEl.textContent = "¡ERES GENIAL! 🌟";
+                feedbackEl.className = "text-2xl font-bold text-center h-10 mb-4 text-green-500 scale-125 transition-transform";
+                checkButton.classList.add('hidden');
+                newProblemButton.classList.remove('hidden');
+                answerInput.disabled = true;
+            } else {
+                feedbackEl.textContent = "¡Casi! Intenta de nuevo 💡";
+                feedbackEl.className = "text-2xl font-bold text-center h-10 mb-4 text-orange-500";
+                answerInput.focus();
+            }
+        });
+
+        newProblemButton.addEventListener('click', generateProblem);
+        difficultySelector.addEventListener('change', generateProblem);
+        window.onload = generateProblem;
+    </script>
+</body>
+</html>
